@@ -41,6 +41,8 @@ export default async function DashboardPage() {
   const uniqueUserIds = Array.from(new Set([...allUserIds, ...myUserIds]))
 
   // Fetch profiles for all users
+  // this seems very inefficient -- will want to use just the profiles we need as we update the table
+  // place all this get data code in another file that listens to where we are in our pagination of the tables... or search functionality
   const { data: profiles, error: profilesError } = await supabase
     .from('profiles')
     .select('id, display_name, username, avatar_url, is_public, institution, websites, website, full_name, email, summary, location, contact_json')
@@ -127,11 +129,11 @@ export default async function DashboardPage() {
         </TabsList>
         
         <TabsContent value="all" className="mt-6">
-          <SubmissionsByProblem groupedSubmissions={allGrouped} />
+          <SubmissionsByProblem groupedSubmissions={allGrouped} currentUserId={user.id} />
         </TabsContent>
         
         <TabsContent value="mine" className="mt-6">
-          <SubmissionsByProblem groupedSubmissions={myGrouped} />
+          <SubmissionsByProblem groupedSubmissions={myGrouped} currentUserId={user.id} />
         </TabsContent>
       </Tabs>
     </div>

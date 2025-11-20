@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState } from "react"
 
 export function AnimatedBackground() {
   const [scrollY, setScrollY] = useState(0)
@@ -16,9 +16,14 @@ export function AnimatedBackground() {
     "#d6a87b", // Orange
   ]
 
-  // Randomize color on each load (using useMemo to persist across re-renders)
-  const gridColor = useMemo(() => {
-    return colors[Math.floor(Math.random() * colors.length)]
+  // Generate color on client side only to avoid hydration mismatch
+  const [gridColor, setGridColor] = useState<string | null>(null) // null until mounted
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    // Mark as mounted and generate random color on client side only
+    setIsMounted(true)
+    setGridColor(colors[Math.floor(Math.random() * colors.length)])
   }, [])
 
   useEffect(() => {
@@ -64,9 +69,10 @@ export function AnimatedBackground() {
   const gridSize = isMobile ? 40 : 60
   const subGridSize = isMobile ? 20 : 30
 
-  // Faint colored grid lines
-  const mainGridColor = hexToRgba(gridColor, 0.06)
-  const subGridColor = hexToRgba(gridColor, 0.035)
+  // Faint colored grid lines (use default color until mounted to avoid hydration mismatch)
+  const currentColor = gridColor || colors[0]
+  const mainGridColor = hexToRgba(currentColor, 0.06)
+  const subGridColor = hexToRgba(currentColor, 0.035)
 
   return (
     <div

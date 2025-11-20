@@ -13,14 +13,16 @@ import { Button } from "@/components/ui/button"
 import { ProblemGroupedSubmissions, Submission } from "./types"
 import { UserTooltip } from "./user-tooltip"
 import { CodeViewer } from "./code-viewer"
+import { PerformanceChart } from "./performance-chart"
 import { Eye } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface SubmissionsByProblemProps {
   groupedSubmissions: ProblemGroupedSubmissions[]
+  currentUserId: string
 }
 
-export function SubmissionsByProblem({ groupedSubmissions }: SubmissionsByProblemProps) {
+export function SubmissionsByProblem({ groupedSubmissions, currentUserId }: SubmissionsByProblemProps) {
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null)
   const [isCodeViewerOpen, setIsCodeViewerOpen] = useState(false)
 
@@ -163,6 +165,27 @@ export function SubmissionsByProblem({ groupedSubmissions }: SubmissionsByProble
                   </TableBody>
                 </Table>
               </div>
+              
+              {/* Performance Charts - Show for each metric, prioritizing "time" */}
+              {metricKeys.length > 0 && (
+                <div className="space-y-4 mt-4">
+                  {/* Prioritize "time" metric if it exists */}
+                  {metricKeys.includes("time") ? (
+                    <PerformanceChart
+                      submissions={group.submissions}
+                      currentUserId={currentUserId}
+                      metricKey="time"
+                    />
+                  ) : (
+                    // Show first available metric
+                    <PerformanceChart
+                      submissions={group.submissions}
+                      currentUserId={currentUserId}
+                      metricKey={metricKeys[0]}
+                    />
+                  )}
+                </div>
+              )}
             </div>
           )
         })}
