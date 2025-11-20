@@ -119,7 +119,7 @@ export default async function DashboardPage() {
   const myGrouped = mySubmissionsWithProfiles ? groupByProblem(mySubmissionsWithProfiles) : []
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-12">
       <UserHeader user={user} allSubmissions={allSubmissionsWithProfiles} />
 
       <Tabs defaultValue="all" className="w-full">

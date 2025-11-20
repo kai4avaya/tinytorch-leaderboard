@@ -101,91 +101,115 @@ export function SubmissionsByProblem({ groupedSubmissions, currentUserId }: Subm
           const metricKeys = getMetricKeys(group.submissions)
 
           return (
-            <div key={group.problem_id} className="space-y-2">
+            <div key={group.problem_id} className="space-y-12">
               <h3 className="text-lg font-semibold">
                 {group.problem_title 
                   ? `Problem #${group.problem_number}: ${group.problem_title}`
                   : `Problem: ${group.problem_id.slice(0, 8)}...`}
               </h3>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Status</TableHead>
-                      {/* Dynamic metric columns */}
-                      {metricKeys.map((metricKey) => (
-                        <TableHead key={metricKey} className="text-right">
-                          {metricKey.charAt(0).toUpperCase() + metricKey.slice(1)}
-                        </TableHead>
-                      ))}
-                      <TableHead className="text-right">Submitted</TableHead>
-                      <TableHead className="w-[120px]">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {group.submissions.map((submission) => (
-                      <TableRow key={submission.id}>
-                        <TableCell>
-                          <UserTooltip profile={submission.profiles} user_id={submission.user_id}>
-                            <span className="font-medium hover:underline cursor-help">
-                              {getDisplayName(submission)}
-                            </span>
-                          </UserTooltip>
-                        </TableCell>
-                        <TableCell>
-                          <span className={getStatusColor(submission.status)}>
-                            {submission.status || "Pending"}
-                          </span>
-                        </TableCell>
-                        {/* Dynamic metric cells */}
-                        {metricKeys.map((metricKey) => (
-                          <TableCell key={metricKey} className="text-right">
-                            {submission.metrics && submission.metrics[metricKey] !== undefined
-                              ? formatMetricValue(submission.metrics[metricKey])
-                              : <span className="text-gray-400">-</span>}
-                          </TableCell>
-                        ))}
-                        <TableCell className="text-right text-sm">
-                          {formatDate(submission.created_at)}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewSubmission(submission)}
-                            className="gap-2 cursor-pointer"
-                          >
-                            <Eye className="h-4 w-4" />
-                            View Code
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
               
-              {/* Performance Charts - Show for each metric, prioritizing "time" */}
-              {metricKeys.length > 0 && (
-                <div className="space-y-4 mt-4">
-                  {/* Prioritize "time" metric if it exists */}
-                  {metricKeys.includes("time") ? (
-                    <PerformanceChart
-                      submissions={group.submissions}
-                      currentUserId={currentUserId}
-                      metricKey="time"
-                    />
-                  ) : (
-                    // Show first available metric
-                    <PerformanceChart
-                      submissions={group.submissions}
-                      currentUserId={currentUserId}
-                      metricKey={metricKeys[0]}
-                    />
+              {/* Chart and Table Layout - Side by side when code viewer closed, stacked when open */}
+              <div className={cn(
+                "transition-all duration-300 ease-in-out",
+                isCodeViewerOpen ? "flex flex-col gap-8" : "flex flex-row gap-8 items-stretch"
+              )}>
+                {/* Table - Left side when code viewer closed, top when open */}
+                <div 
+                  id={`table-container-${group.problem_id}`}
+                  className={cn(
+                    "transition-all duration-300 ease-in-out",
+                    isCodeViewerOpen ? "w-full" : "flex-1 min-w-0"
                   )}
+                >
+                  <div className="rounded-md border h-full">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>User</TableHead>
+                          <TableHead>Status</TableHead>
+                          {/* Dynamic metric columns */}
+                          {metricKeys.map((metricKey) => (
+                            <TableHead key={metricKey} className="text-right">
+                              {metricKey.charAt(0).toUpperCase() + metricKey.slice(1)}
+                            </TableHead>
+                          ))}
+                          <TableHead className="text-right">Submitted</TableHead>
+                          <TableHead className="w-[120px]">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {group.submissions.map((submission) => (
+                          <TableRow key={submission.id}>
+                            <TableCell>
+                              <UserTooltip profile={submission.profiles} user_id={submission.user_id}>
+                                <span className="font-medium hover:underline cursor-help">
+                                  {getDisplayName(submission)}
+                                </span>
+                              </UserTooltip>
+                            </TableCell>
+                            <TableCell>
+                              <span className={getStatusColor(submission.status)}>
+                                {submission.status || "Pending"}
+                              </span>
+                            </TableCell>
+                            {/* Dynamic metric cells */}
+                            {metricKeys.map((metricKey) => (
+                              <TableCell key={metricKey} className="text-right">
+                                {submission.metrics && submission.metrics[metricKey] !== undefined
+                                  ? formatMetricValue(submission.metrics[metricKey])
+                                  : <span className="text-gray-400">-</span>}
+                              </TableCell>
+                            ))}
+                            <TableCell className="text-right text-sm">
+                              {formatDate(submission.created_at)}
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewSubmission(submission)}
+                                className="gap-2 cursor-pointer"
+                              >
+                                <Eye className="h-4 w-4" />
+                                View Code
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
-              )}
+                
+                {/* Performance Chart - Right side when code viewer closed, bottom when open */}
+                {metricKeys.length > 0 && (
+                  <div 
+                    id={`chart-container-${group.problem_id}`}
+                    className={cn(
+                      "transition-all duration-300 ease-in-out",
+                      isCodeViewerOpen ? "w-full" : "w-1/3 flex-shrink-0"
+                    )}
+                  >
+                    {/* Prioritize "time" metric if it exists */}
+                    {metricKeys.includes("time") ? (
+                      <PerformanceChart
+                        submissions={group.submissions}
+                        currentUserId={currentUserId}
+                        metricKey="time"
+                        tableContainerId={`table-container-${group.problem_id}`}
+                      />
+                    ) : (
+                      // Show first available metric
+                      <PerformanceChart
+                        submissions={group.submissions}
+                        currentUserId={currentUserId}
+                        metricKey={metricKeys[0]}
+                        tableContainerId={`table-container-${group.problem_id}`}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )
         })}
