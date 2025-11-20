@@ -46,13 +46,32 @@ export default async function DashboardPage() {
     .select('id, display_name, username, avatar_url, is_public, institution, websites, website, full_name, email, summary, location, contact_json')
     .in('id', uniqueUserIds)
 
+  // Define profile type
+  type Profile = {
+    id: string
+    display_name: string | null
+    username: string | null
+    avatar_url: string | null
+    is_public: boolean
+    institution: string[] | null
+    websites: string[] | null
+    website: string[] | null
+    full_name: string | null
+    email: string | null
+    summary: string | null
+    location: string | null
+    contact_json: any
+  }
+
   // Create a map of user_id -> profile for quick lookup
-  const profileMap = new Map<string, typeof profiles[0] | undefined>()
-  profiles?.forEach((profile) => {
-    if (profile) {
-      profileMap.set(profile.id, profile)
-    }
-  })
+  const profileMap = new Map<string, Profile>()
+  if (profiles) {
+    profiles.forEach((profile) => {
+      if (profile) {
+        profileMap.set(profile.id, profile)
+      }
+    })
+  }
 
   // Merge profiles into submissions
   const mergeProfiles = (submissions: Submission[] | null): Submission[] => {
