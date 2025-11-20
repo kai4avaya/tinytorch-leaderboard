@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ProfileModal } from "./profile-modal"
+import { ShareAccomplishmentsModal } from "./share-accomplishments-modal"
 import { UserBadges } from "./user-badges"
 import { Submission } from "./types"
 
@@ -19,6 +20,7 @@ interface UserHeaderProps {
 
 export function UserHeader({ user, allSubmissions }: UserHeaderProps) {
   const [profileOpen, setProfileOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
 
   return (
     <>
@@ -30,9 +32,14 @@ export function UserHeader({ user, allSubmissions }: UserHeaderProps) {
               Welcome back, {user.email || "User"}
             </p>
           </div>
-          <Button onClick={() => setProfileOpen(true)} variant="outline">
-            Profile
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShareOpen(true)} variant="outline">
+              Share Accomplishments
+            </Button>
+            <Button onClick={() => setProfileOpen(true)} variant="outline">
+              Profile
+            </Button>
+          </div>
         </div>
         
         <UserBadges submissions={allSubmissions} userId={user.id} />
@@ -42,6 +49,13 @@ export function UserHeader({ user, allSubmissions }: UserHeaderProps) {
         user={user}
         open={profileOpen}
         onOpenChange={setProfileOpen}
+      />
+      
+      <ShareAccomplishmentsModal
+        user={user}
+        submissions={allSubmissions}
+        open={shareOpen}
+        onOpenChange={setShareOpen}
       />
     </>
   )
