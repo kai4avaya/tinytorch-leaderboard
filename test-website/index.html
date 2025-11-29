@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinyTorch Edge Function Tester</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; background: #f9f9f9; color: #333; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        h2 { margin-top: 0; color: #111; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; }
+        input, textarea { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 1rem; box-sizing: border-box; font-family: monospace; }
+        button { background: #000; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        button:hover { opacity: 0.8; }
+        button.secondary { background: #eee; color: #333; }
+        .hidden { display: none; }
+        .status { padding: 1rem; border-radius: 6px; margin-top: 1rem; font-family: monospace; white-space: pre-wrap; }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+        .info { background: #e0f2fe; color: #075985; }
+        code { background: #eee; padding: 2px 4px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <h1>🔥 TinyTorch Sync Tester</h1>
+    <p>Simulate the CLI upload flow directly from your browser.</p>
+
+    <div class="card" id="config-card">
+        <h2>1. Configuration</h2>
+        <label>Supabase Project URL</label>
+        <input type="text" id="url" placeholder="https://xyz.supabase.co" value="https://zrvmjrxhokwwmjacyhpq.supabase.co">
+        
+        <label>Supabase Anon Key (Public)</label>
+        <input type="password" id="key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." value="sb_publishable_AP2UzNWC3T1GQGjtuTr_PQ_9q6l7AC0" ionchange="initClient()">
+    </div>
+
+    <div class="card" id="login-card">
+        <h2>2. Authenticate (Simulate CLI Login)</h2>
+        <div id="login-form">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="student@tinytorch.io">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="********">
+            <button onclick="login()">Log In</button>
+        </div>
+        
+        <div id="logged-in-view" class="hidden">
+            <div class="status info">✅ Logged in as: <span id="user-email"></span><br><small>Token ID: <span id="token-preview"></span>...</small></div>
+            <br>
+            <button class="secondary" onclick="logout()">Log Out</button>
+        </div>
+    </div>
+
+    <div class="card hidden" id="test-card">
+        <h2>3. Upload Progress</h2>
+        <label>JSON Payload (Edit me to test different modules)</label>
+        <textarea id="payload" rows="15">
+{
+  "user_id": "WILL_BE_IGNORED",
+  "timestamp": "2025-11-25T12:00:00",
+  "version": "1.0",
+  "module_progress": {
+    "total_modules": 20,
+    "completed_count": 2,
+    "completed_modules": [1, 5],
+    "completion_dates": {
+      "1": "2025-11-25T10:00:00",
+      "5": "2025-11-25T11:00:00"
+    },
+    "completion_percentage": 10
+  },
+  "milestone_progress": {
+    "total_milestones": 6,
+    "unlocked_count": 1,
+    "unlocked_milestones": [
+      {
+        "id": "01",
+        "name": "Perceptron",
+        "unlocked_at": "2025-11-25T10:00:00",
+        "completed": true,
+        "completed_at": "2025-11-25T15:00:00"
+      }
+    ]
+  },
+  "statistics": {
+    "current_streak_days": 10
+  }
+}</textarea>
+        <button onclick="uploadProgress()">🚀 Upload to Edge Function</button>
+        <div id="result" class="status hidden"></div>
+    </div>
+
+    <script>
+        let supabase;
+        let session = null;
+
+        function initClient() {
+            const url = document.getElementById('url').value;
+            const key = document.getElementById('key').value;
+            if(url && key) {
+                supabase = window.supabase.createClient(url, key);
+                console.log("Supabase initialized");
+            }
+        }
+
+        async function login() {
+            if (!supabase) initClient();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                
+                session = data.session;
+                showLoggedIn(data.user);
+            } catch (err) {
+                alert("Login failed: " + err.message);
+            }
+        }
+
+        function showLoggedIn(user) {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('logged-in-view').classList.remove('hidden');
+            document.getElementById('test-card').classList.remove('hidden');
+            document.getElementById('user-email').innerText = user.email;
+            document.getElementById('token-preview').innerText = session.access_token.substring(0, 10);
+        }
+
+        function logout() {
+            supabase.auth.signOut();
+            session = null;
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('logged-in-view').classList.add('hidden');
+            document.getElementById('test-card').classList.add('hidden');
+        }
+
+        async function uploadProgress() {
+            const payload = document.getElementById('payload').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerText = "Sending...";
+            resultDiv.className = "status info";
+            resultDiv.classList.remove('hidden');
+
+            try {
+                // CALLING THE EDGE FUNCTION
+                const { data, error } = await supabase.functions.invoke('upload-progress', {
+                    body: JSON.parse(payload)
+                });
+
+                if (error) throw error;
+
+                resultDiv.innerText = "✅ Success!\n" + JSON.stringify(data, null, 2);
+                resultDiv.className = "status success";
+
+            } catch (err) {
+                resultDiv.innerText = "❌ Error:\n" + err.message;
+                resultDiv.className = "status error";
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
