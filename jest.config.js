@@ -14,8 +14,8 @@ const config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
-  testTimeout: 15000, // 15 seconds for API calls
-  setupFiles: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/jest.server.js', '<rootDir>/jest.setup.js'],
+  testTimeout: 60000, // 60 seconds for API calls
 };
 
 module.exports = config;
