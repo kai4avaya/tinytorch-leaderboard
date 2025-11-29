@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server-with-token'
+import { createClientWithToken as createClient } from '@/utils/supabase/server-with-token'
 
 export async function POST(request: Request) {
   const { refreshToken } = await request.json()
