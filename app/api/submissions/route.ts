@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClientWithToken } from '@/utils/supabase/server-with-token'
+import { getCorsHeaders } from '@/lib/cors' // Import the new helper
 
 /**
  * GET endpoint for fetching submissions
@@ -13,6 +14,8 @@ import { createClientWithToken } from '@/utils/supabase/server-with-token'
  * - For mine=false: Public access (no auth required)
  */
 export async function GET(request: NextRequest) {
+  const corsHeaders = getCorsHeaders(request, { methods: 'GET, OPTIONS' });
+
   try {
     // Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -26,7 +29,7 @@ export async function GET(request: NextRequest) {
     if (isNaN(limit) || limit < 1 || limit > 1000) {
       return NextResponse.json(
         { error: 'Invalid limit parameter. Must be between 1 and 1000.' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       )
     }
 
@@ -41,7 +44,7 @@ export async function GET(request: NextRequest) {
       if (!bearerToken) {
         return NextResponse.json(
           { error: 'Unauthorized' },
-          { status: 401 }
+          { status: 401, headers: corsHeaders }
         )
       }
 
@@ -54,7 +57,7 @@ export async function GET(request: NextRequest) {
       if (authError || !user) {
         return NextResponse.json(
           { error: 'Unauthorized' },
-          { status: 401 }
+          { status: 401, headers: corsHeaders }
         )
       }
 
@@ -70,7 +73,7 @@ export async function GET(request: NextRequest) {
         console.error('Supabase error:', error)
         return NextResponse.json(
           { error: 'Internal server error' },
-          { status: 500 }
+          { status: 500, headers: corsHeaders }
         )
       }
 
@@ -78,11 +81,7 @@ export async function GET(request: NextRequest) {
         { data: data || [] },
         {
           status: 200,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-          },
+          headers: corsHeaders,
         }
       )
     } else {
@@ -100,7 +99,7 @@ export async function GET(request: NextRequest) {
         console.error('Supabase error:', error)
         return NextResponse.json(
           { error: 'Internal server error' },
-          { status: 500 }
+          { status: 500, headers: corsHeaders }
         )
       }
 
@@ -108,11 +107,7 @@ export async function GET(request: NextRequest) {
         { data: data || [] },
         {
           status: 200,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-          },
+          headers: corsHeaders,
         }
       )
     }
@@ -120,19 +115,16 @@ export async function GET(request: NextRequest) {
     console.error('API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     )
   }
 }
 
 // Handle OPTIONS for CORS preflight
 export async function OPTIONS(request: NextRequest) {
+  const corsHeaders = getCorsHeaders(request, { methods: 'GET, OPTIONS' });
   return new NextResponse(null, {
     status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-    },
+    headers: corsHeaders,
   })
 }

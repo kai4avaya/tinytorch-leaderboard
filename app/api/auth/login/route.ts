@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { getCorsHeaders } from '@/lib/cors' // Import the new helper
 
 export async function POST(request: NextRequest) {
+  const corsHeaders = getCorsHeaders(request, { methods: 'POST, OPTIONS' });
+
   try {
     const { email, password } = await request.json()
 
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
-        { status: 400, headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-          }, }
+        { status: 400, headers: corsHeaders }
       )
     }
 
@@ -25,22 +24,14 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json(
         { error: error.message },
-        { status: 401, headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-          }, }
+        { status: 401, headers: corsHeaders }
       )
     }
 
     if (!data.session) {
       return NextResponse.json(
         { error: 'Failed to create session' },
-        { status: 500, headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-          }, }
+        { status: 500, headers: corsHeaders }
       )
     }
 
@@ -55,31 +46,20 @@ export async function POST(request: NextRequest) {
     },
     {
       status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
+      headers: corsHeaders,
     })
   } catch (error) {
     return NextResponse.json(
       { error: 'Invalid request body' },
-      { status: 400, headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-          }, }
+      { status: 400, headers: corsHeaders }
     )
   }
 }
 
 export async function OPTIONS(request: NextRequest) {
+  const corsHeaders = getCorsHeaders(request, { methods: 'POST, OPTIONS' });
   return new NextResponse(null, {
     status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
+    headers: corsHeaders,
   })
 }

@@ -40,6 +40,17 @@ export const IS_DEV = process.env.NODE_ENV === 'development'
 export const LOCAL_DEV_URL = 'http://localhost:3000'
 
 /**
+ * Allowed Origins for CORS
+ */
+export const ALLOWED_ORIGINS = [
+  'https://kai4avaya.github.io', // Allow the GitHub Pages domain
+  'https://tinytorch.ai',
+  'http://localhost:2021', // Always allow localhost:2021
+  SITE_URL, // Allow the deployed site itself
+  ...(IS_DEV ? ['http://localhost:3000'] : []), // Only allow localhost:3000 in dev mode
+]
+
+/**
  * Get the appropriate base URL based on environment
  */
 export function getBaseUrl(): string {

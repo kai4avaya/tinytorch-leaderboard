@@ -1,45 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { getUrl } from '@/utils/config'
 import { getCorsHeaders } from '@/lib/cors' // Import the new helper
 
 export async function POST(request: NextRequest) {
   const corsHeaders = getCorsHeaders(request, { methods: 'POST, OPTIONS' });
 
   try {
-    const { email, password } = await request.json()
+    const { email } = await request.json()
 
-    if (!email || !password) {
+    if (!email) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Email is required' },
         { status: 400, headers: corsHeaders }
       )
     }
 
     const supabase = await createClient()
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: getUrl('/auth/reset-password'),
     })
 
+    // IMPORTANT: Return a generic success message even if the email doesn't exist
+    // This prevents email enumeration attacks.
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400, headers: corsHeaders }
-      )
+        console.error('Password reset request error:', error)
+        // Log the error but return generic success to the client
     }
 
     return NextResponse.json({
       success: true,
-      message: 'User created successfully',
-      user: {
-        id: data.user?.id,
-        email: data.user?.email,
-      },
-    }, { status: 201, headers: corsHeaders })
+      message: 'If an account with that email exists, a password reset link has been sent to your inbox.',
+    }, { status: 200, headers: corsHeaders })
 
   } catch (error) {
+    console.error('Unexpected error in reset-password API:', error)
     return NextResponse.json(
-      { error: 'Invalid request body' },
+      { error: 'Invalid request body or unexpected error' },
       { status: 400, headers: corsHeaders }
     )
   }

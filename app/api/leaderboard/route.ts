@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClientWithToken } from '@/utils/supabase/server-with-token'
+import { getCorsHeaders } from '@/lib/cors' // Import the new helper
 
 /**
  * Secure API endpoint for leaderboard operations
@@ -11,6 +12,8 @@ import { createClientWithToken } from '@/utils/supabase/server-with-token'
  * RLS ensures users can only write their own rows (user_id = auth.uid())
  */
 export async function POST(request: NextRequest) {
+  const corsHeaders = getCorsHeaders(request, { methods: 'POST, OPTIONS' });
+
   try {
     // Extract Bearer token from Authorization header (if present)
     const authHeader = request.headers.get('authorization')
@@ -27,7 +30,7 @@ export async function POST(request: NextRequest) {
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Not authenticated. Please provide a valid token or be logged in.' },
-        { status: 401 }
+        { status: 401, headers: corsHeaders }
       )
     }
 
@@ -69,7 +72,7 @@ export async function POST(request: NextRequest) {
       console.error('Leaderboard update error:', updateError)
       return NextResponse.json(
         { error: updateError.message },
-        { status: 500 }
+        { status: 500, headers: corsHeaders }
       )
     }
 
@@ -79,7 +82,7 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'Leaderboard updated successfully',
         data: updateData[0],
-      })
+      }, { headers: corsHeaders })
     }
 
     // If no row exists, insert a new one
@@ -92,7 +95,7 @@ export async function POST(request: NextRequest) {
       console.error('Leaderboard insert error:', error)
       return NextResponse.json(
         { error: error.message },
-        { status: 500 }
+        { status: 500, headers: corsHeaders }
       )
     }
 
@@ -100,12 +103,12 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Leaderboard created successfully',
       data: data?.[0] || data,
-    })
+    }, { headers: corsHeaders })
   } catch (error) {
     console.error('Leaderboard API error:', error)
     return NextResponse.json(
       { error: 'Invalid request body' },
-      { status: 400 }
+      { status: 400, headers: corsHeaders }
     )
   }
 }
@@ -115,6 +118,8 @@ export async function POST(request: NextRequest) {
  * But we'll still support both cookie and token auth for consistency
  */
 export async function GET(request: NextRequest) {
+  const corsHeaders = getCorsHeaders(request, { methods: 'GET, OPTIONS' });
+
   try {
     // Extract Bearer token from Authorization header (if present)
     const authHeader = request.headers.get('authorization')
@@ -145,7 +150,7 @@ export async function GET(request: NextRequest) {
       console.error('Leaderboard read error:', error)
       return NextResponse.json(
         { error: error.message },
-        { status: 500 }
+        { status: 500, headers: corsHeaders }
       )
     }
 
@@ -154,12 +159,20 @@ export async function GET(request: NextRequest) {
       data,
       limit,
       offset,
-    })
+    }, { headers: corsHeaders })
   } catch (error) {
     console.error('Leaderboard GET error:', error)
     return NextResponse.json(
       { error: 'Invalid request' },
-      { status: 400 }
+      { status: 400, headers: corsHeaders }
     )
   }
+}
+
+export async function OPTIONS(request: NextRequest) {
+  const corsHeaders = getCorsHeaders(request, { methods: 'GET, POST, OPTIONS' });
+  return new NextResponse(null, {
+    status: 200,
+    headers: corsHeaders,
+  });
 }
