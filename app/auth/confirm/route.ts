@@ -8,8 +8,20 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get('type') as EmailOtpType | null
   const next = searchParams.get('next') ?? '/'
 
+  // Create the redirect URL
   const redirectTo = request.nextUrl.clone()
-  redirectTo.pathname = next
+  
+  // Handle next URLs that might contain query parameters
+  if (next.includes('?')) {
+    const [path, query] = next.split('?')
+    redirectTo.pathname = path
+    const nextParams = new URLSearchParams(query)
+    nextParams.forEach((value, key) => {
+      redirectTo.searchParams.set(key, value)
+    })
+  } else {
+    redirectTo.pathname = next
+  }
 
   if (token_hash && type) {
     const supabase = await createClient()
@@ -25,8 +37,11 @@ export async function GET(request: NextRequest) {
         redirectTo.pathname = '/auth/reset-password'
         return NextResponse.redirect(redirectTo)
       } else if (type === 'email') {
-        // Email confirmation - redirect to login with success message
-        redirectTo.pathname = '/login'
+        // Email confirmation
+        // Only default to /login if we aren't being sent somewhere specific (like cli-login)
+        if (!next.includes('cli-login') && (redirectTo.pathname === '/' || redirectTo.pathname === '/login')) {
+          redirectTo.pathname = '/login'
+        }
         redirectTo.searchParams.set('message', 'Email confirmed successfully')
         return NextResponse.redirect(redirectTo)
       }
