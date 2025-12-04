@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { LoginForm } from './login-form'
-import { ProfileForm } from './profile-form'
 
 export default async function CLILoginPage({
   searchParams,
@@ -33,23 +32,7 @@ export default async function CLILoginPage({
   const { data: { user } } = await supabase.auth.getUser()
 
   if (user) {
-    // Check if user has a profile
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('id', user.id)
-      .single()
-
-    // If no profile or no username, show profile creation
-    if (!profile || !profile.username) {
-      return (
-        <div className="flex min-h-screen items-center justify-center p-4">
-          <ProfileForm redirectPort={redirectPort} user={user} />
-        </div>
-      )
-    }
-
-    // User is authenticated and has profile, get session and redirect
+    // User is already authenticated, get session and redirect immediately
     const { data: { session } } = await supabase.auth.getSession()
     if (session) {
       const localhostUrl = new URL(`http://127.0.0.1:${redirectPort}/callback`)

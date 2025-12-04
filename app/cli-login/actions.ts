@@ -65,17 +65,28 @@ export async function signup(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const redirectPort = formData.get('redirect_port') as string
+  // The frontend should pass the full local callback URL if available
+  const redirectTo = formData.get('redirect_to') as string 
 
   if (!email || !password) {
     return { error: 'Email and password are required' }
   }
 
-  if (!redirectPort) {
-    return { error: 'Missing redirect_port' }
-  }
+  // Determine the email confirmation redirect URL
+  let emailRedirectTo: string;
 
-  const nextPath = `/cli-login?redirect_port=${redirectPort}`
-  const emailRedirectTo = getUrl(`/auth/confirm?next=${encodeURIComponent(nextPath)}`)
+  if (redirectTo) {
+    // IF the CLI sent the full URL (e.g. http://127.0.0.1:54321/callback)
+    // We tell Supabase to redirect the user there after email confirmation.
+    // Note: Supabase must have this URL pattern allowed in "Redirect URLs"
+    emailRedirectTo = redirectTo
+  } else if (redirectPort) {
+    // Legacy/Fallback support for just the port
+    const nextPath = `/cli-login?redirect_port=${redirectPort}`
+    emailRedirectTo = getUrl(`/auth/confirm?next=${encodeURIComponent(nextPath)}`)
+  } else {
+    return { error: 'Missing redirect_to or redirect_port' }
+  }
 
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({
@@ -93,13 +104,24 @@ export async function signup(formData: FormData) {
   if (data.user && !data.session) {
     return { 
       success: true, 
-      message: 'Please check your email to confirm your account. Once confirmed, you will be redirected back here.' 
+      message: 'Please check your email to confirm your account. Once confirmed, you will be redirected automatically.' 
     }
   }
 
   if (data.session) {
-    revalidatePath('/cli-login')
-    redirectToCLILogin(redirectPort)
+    // Auto-confirmed or existing session
+    if (redirectTo) {
+        // If we have a direct URL, redirect there with tokens
+        const finalUrl = new URL(redirectTo)
+        finalUrl.searchParams.set('access_token', data.session.access_token)
+        finalUrl.searchParams.set('refresh_token', data.session.refresh_token)
+        if (data.session.expires_at) finalUrl.searchParams.set('expires_at', data.session.expires_at.toString())
+        if (data.user && data.user.email) finalUrl.searchParams.set('email', data.user.email)
+        redirect(finalUrl.toString())
+    } else {
+        revalidatePath('/cli-login')
+        redirectToCLILogin(redirectPort)
+    }
   }
 
   return { 
@@ -128,6 +150,7 @@ export async function requestPasswordReset(formData: FormData) {
   return { success: true, message: 'Password reset email sent. Check your inbox.' }
 }
 
+// Profile actions are kept for potential future use but are not used in the current flow
 export async function updateProfile(formData: FormData) {
   const redirectPort = formData.get('redirect_port') as string
   const username = formData.get('username') as string
@@ -154,16 +177,13 @@ export async function updateProfile(formData: FormData) {
   const profileData: Record<string, any> = {
     username: username || undefined,
     full_name: fullName || undefined,
-    institution: institution ? [institution] : undefined, // Pass as array for Edge Function
+    institution: institution ? [institution] : undefined, 
     location: location || undefined,
-    website: website ? [website] : undefined, // Pass as array for Edge Function
+    website: website ? [website] : undefined, 
     summary: summary || undefined,
     avatar_url: avatarUrl || undefined,
-    // Other fields like display_name, is_public, contact_json, preferences
-    // are not part of the form so we don't send them unless specified.
   }
 
-  // Filter out undefined values to avoid sending them in the payload
   const filteredProfileData = Object.fromEntries(
     Object.entries(profileData).filter(([, value]) => value !== undefined)
   )
@@ -192,7 +212,7 @@ export async function updateProfile(formData: FormData) {
 
 export async function skipProfile(formData: FormData) {
   const redirectPort = formData.get('redirect_port') as string
-  const location = formData.get('location') as string // Inferred location
+  const location = formData.get('location') as string
 
   if (!redirectPort) {
     return { error: 'Missing redirect_port' }
