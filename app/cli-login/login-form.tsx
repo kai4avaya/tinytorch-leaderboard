@@ -68,7 +68,7 @@ export function LoginForm({
         <img 
           src="/logo-tinytorch.png" 
           alt="Tiny Torch Logo" 
-          className="h-10 w-auto mr-3" {/* Adjusted size and added margin-right */}
+          className="h-10 w-auto mr-3"
         />
         <h1 className="text-2xl font-semibold text-black dark:text-zinc-50"> {/* Removed mt-4 */}
           Tiny Torch
