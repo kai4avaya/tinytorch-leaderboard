@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const token_hash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
+  const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/'
 
   // Create the redirect URL
@@ -23,6 +24,27 @@ export async function GET(request: NextRequest) {
     redirectTo.pathname = next
   }
 
+  // Handle PKCE flow (code exchange)
+  if (code) {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    
+    if (!error) {
+      // Successful exchange - redirect to next
+      if (!next.includes('cli-login') && (redirectTo.pathname === '/' || redirectTo.pathname === '/login')) {
+        redirectTo.pathname = '/login'
+        redirectTo.searchParams.set('message', 'Email confirmed successfully')
+      } else {
+        // For CLI login, we just want to go back to the page, 
+        // the page will handle the session check and redirect
+        redirectTo.searchParams.set('message', 'Email confirmed successfully')
+      }
+      return NextResponse.redirect(redirectTo)
+    }
+    // If code exchange fails, fall through to error
+  }
+
+  // Handle Token Hash flow (Implicit/Magic Link)
   if (token_hash && type) {
     const supabase = await createClient()
     const { error } = await supabase.auth.verifyOtp({
