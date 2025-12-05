@@ -6,10 +6,12 @@ import { Loader2 } from 'lucide-react'
 
 export function LoginForm({ 
   redirectPort,
+  redirectTo,
   initialError,
   initialMessage
 }: { 
   redirectPort: string
+  redirectTo?: string
   initialError?: string
   initialMessage?: string
 }) {
@@ -29,6 +31,9 @@ export function LoginForm({
     const formData = new FormData(event.currentTarget)
     if (!formData.get('redirect_port')) {
       formData.set('redirect_port', redirectPort)
+    }
+    if (redirectTo && !formData.get('redirect_to')) {
+      formData.set('redirect_to', redirectTo)
     }
 
     startTransition(async () => {
@@ -89,6 +94,7 @@ export function LoginForm({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <input type="hidden" name="redirect_port" value={redirectPort} />
+        {redirectTo && <input type="hidden" name="redirect_to" value={redirectTo} />}
 
         <div>
           <label
