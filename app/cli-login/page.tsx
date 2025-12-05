@@ -1,6 +1,6 @@
-import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { LoginForm } from './login-form'
+import { RedirectWithMessage } from './redirect-with-message' // Import the new component
 
 export default async function CLILoginPage({
   searchParams,
@@ -33,7 +33,7 @@ export default async function CLILoginPage({
   const { data: { user } } = await supabase.auth.getUser()
 
   if (user) {
-    // User is already authenticated, get session and redirect immediately
+    // User is already authenticated, get session
     const { data: { session } } = await supabase.auth.getSession()
     if (session) {
       let finalUrl: URL
@@ -53,7 +53,9 @@ export default async function CLILoginPage({
       if (user.email) {
         finalUrl.searchParams.set('email', user.email)
       }
-      redirect(finalUrl.toString())
+
+      // Render the RedirectWithMessage component instead of immediate redirect
+      return <RedirectWithMessage redirectUrl={finalUrl.toString()} />
     }
   }
 
