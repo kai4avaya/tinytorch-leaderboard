@@ -27,19 +27,31 @@ export async function GET(request: NextRequest) {
   // Handle PKCE flow (code exchange)
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code)
     
-    if (!error) {
-      // Successful exchange - redirect to next
-      if (!next.includes('cli-login') && (redirectTo.pathname === '/' || redirectTo.pathname === '/login')) {
-        redirectTo.pathname = '/login'
-        redirectTo.searchParams.set('message', 'Email confirmed successfully')
+    if (!error && data?.session) {
+      // Check if next is an absolute URL (e.g. for CLI redirect)
+      const isAbsoluteUrl = next.startsWith('http')
+      let finalRedirectUrl: URL
+
+      if (isAbsoluteUrl) {
+         finalRedirectUrl = new URL(next)
+         // Append tokens for CLI
+         finalRedirectUrl.searchParams.set('access_token', data.session.access_token)
+         finalRedirectUrl.searchParams.set('refresh_token', data.session.refresh_token)
+         if (data.session.expires_at) finalRedirectUrl.searchParams.set('expires_at', data.session.expires_at.toString())
+         if (data.user?.email) finalRedirectUrl.searchParams.set('email', data.user.email)
       } else {
-        // For CLI login, we just want to go back to the page, 
-        // the page will handle the session check and redirect
-        redirectTo.searchParams.set('message', 'Email confirmed successfully')
+         finalRedirectUrl = redirectTo
+         if (!next.includes('cli-login') && (redirectTo.pathname === '/' || redirectTo.pathname === '/login')) {
+            finalRedirectUrl.pathname = '/login'
+            finalRedirectUrl.searchParams.set('message', 'Email confirmed successfully')
+         } else {
+            finalRedirectUrl.searchParams.set('message', 'Email confirmed successfully')
+         }
       }
-      return NextResponse.redirect(redirectTo)
+      
+      return NextResponse.redirect(finalRedirectUrl)
     }
     // If code exchange fails, fall through to error
   }

@@ -76,10 +76,9 @@ export async function signup(formData: FormData) {
   let emailRedirectTo: string;
 
   if (redirectTo) {
-    // IF the CLI sent the full URL (e.g. http://127.0.0.1:54321/callback)
-    // We tell Supabase to redirect the user there after email confirmation.
-    // Note: Supabase must have this URL pattern allowed in "Redirect URLs"
-    emailRedirectTo = redirectTo
+    // We must route through our /auth/confirm endpoint to handle the PKCE code exchange
+    // and append tokens before redirecting to the local CLI server.
+    emailRedirectTo = getUrl(`/auth/confirm?next=${encodeURIComponent(redirectTo)}`)
   } else if (redirectPort) {
     // Legacy/Fallback support for just the port
     const nextPath = `/cli-login?redirect_port=${redirectPort}`
