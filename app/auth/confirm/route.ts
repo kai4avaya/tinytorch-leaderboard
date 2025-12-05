@@ -11,6 +11,10 @@ export async function GET(request: NextRequest) {
 
   // Create the redirect URL
   const redirectTo = request.nextUrl.clone()
+  redirectTo.searchParams.delete('code')
+  redirectTo.searchParams.delete('token_hash')
+  redirectTo.searchParams.delete('type')
+  redirectTo.searchParams.delete('next')
   
   // Handle next URLs that might contain query parameters
   if (next.includes('?')) {
@@ -36,6 +40,8 @@ export async function GET(request: NextRequest) {
 
       if (isAbsoluteUrl) {
          finalRedirectUrl = new URL(next)
+         // Ensure no code parameter leaks
+         finalRedirectUrl.searchParams.delete('code')
          // Append tokens for CLI
          finalRedirectUrl.searchParams.set('access_token', data.session.access_token)
          finalRedirectUrl.searchParams.set('refresh_token', data.session.refresh_token)
