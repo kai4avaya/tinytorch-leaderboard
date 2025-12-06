@@ -26,10 +26,7 @@ export default async function LoginPage({
             alt="Tiny Torch Logo" 
             className="h-16 w-auto mr-3"
           />
-          <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">
-            Login
-          </h1>
-        </div>
+          </div>
 
         {/* Error Message */}
         {params.error && (
