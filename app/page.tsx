@@ -7,9 +7,9 @@ export default async function Home() {
   // Check if user is logged in
   const { data: { user } } = await supabase.auth.getUser()
 
-  // If logged in, redirect to dashboard
+  // If logged in, redirect to the external community dashboard
   if (user) {
-    redirect('/dashboard')
+    redirect('https://tinytorch.ai/community/dashboard.html')
   }
 
   // If not logged in, redirect to login
