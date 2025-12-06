@@ -8,12 +8,18 @@ export function LoginForm({
   redirectPort,
   redirectTo,
   initialError,
-  initialMessage
+  initialMessage,
+  initialEmail,
+  initialName,
+  initialAffiliation
 }: { 
   redirectPort: string
   redirectTo?: string
   initialError?: string
   initialMessage?: string
+  initialEmail?: string
+  initialName?: string
+  initialAffiliation?: string
 }) {
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(
@@ -23,6 +29,9 @@ export function LoginForm({
         ? { type: 'success', text: initialMessage }
         : null
   )
+  // Initialize email state if provided
+  const [email, setEmail] = useState(initialEmail || '')
+  
   const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login')
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -107,6 +116,8 @@ export function LoginForm({
             type="email"
             id="email"
             name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-black placeholder-zinc-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50 dark:placeholder-zinc-500 dark:focus:border-zinc-500 dark:focus:ring-zinc-500"
             placeholder="you@example.com"
             required

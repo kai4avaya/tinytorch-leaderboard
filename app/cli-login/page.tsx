@@ -5,11 +5,22 @@ import { RedirectWithMessage } from './redirect-with-message' // Import the new 
 export default async function CLILoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ redirect_port?: string; redirect_to?: string; error?: string; message?: string }>
+  searchParams: Promise<{ 
+    redirect_port?: string; 
+    redirect_to?: string; 
+    error?: string; 
+    message?: string;
+    email?: string;
+    name?: string;
+    affiliation?: string;
+  }>
 }) {
   const params = await searchParams
   const redirectPort = params.redirect_port
   const redirectTo = params.redirect_to
+  const initialEmail = params.email
+  const initialName = params.name
+  const initialAffiliation = params.affiliation
 
   if (!redirectPort && !redirectTo) {
     return (
@@ -66,6 +77,9 @@ export default async function CLILoginPage({
         redirectTo={redirectTo}
         initialError={params.error}
         initialMessage={params.message}
+        initialEmail={initialEmail}
+        initialName={initialName}
+        initialAffiliation={initialAffiliation}
       />
     </div>
   )
