@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { LoginForm } from './login-form'
-import { RedirectWithMessage } from './redirect-with-message' // Import the new component
+import { RedirectWithMessage } from './redirect-with-message'
+import { LocationDetector } from '@/components/location-detector'
 
 export default async function CLILoginPage({
   searchParams,
@@ -65,8 +66,13 @@ export default async function CLILoginPage({
         finalUrl.searchParams.set('email', user.email)
       }
 
-      // Render the RedirectWithMessage component instead of immediate redirect
-      return <RedirectWithMessage redirectUrl={finalUrl.toString()} />
+      // Render the RedirectWithMessage component with location detection
+      return (
+        <>
+          <LocationDetector userId={user.id} />
+          <RedirectWithMessage redirectUrl={finalUrl.toString()} />
+        </>
+      )
     }
   }
 

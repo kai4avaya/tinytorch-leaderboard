@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { CLI_LOGIN_URL, getUrl } from '@/utils/config'
+import { detectLocation, updateProfileLocation } from '@/lib/location-service'
 
 // Supabase Edge Function endpoint for profile updates
 const UPDATE_PROFILE_EDGE_FUNCTION_URL = 'https://zrvmjrxhokwwmjacyhpq.supabase.co/functions/v1/update-profile'
@@ -108,7 +109,14 @@ export async function signup(formData: FormData) {
   }
 
   if (data.session) {
-    // Auto-confirmed or existing session
+    // Auto-confirmed or existing session - detect location in background
+    if (data.user?.id) {
+      const location = await detectLocation()
+      if (location) {
+        await updateProfileLocation(data.user.id, location, supabase)
+      }
+    }
+    
     if (redirectTo) {
         // If we have a direct URL, redirect there with tokens
         const finalUrl = new URL(redirectTo)

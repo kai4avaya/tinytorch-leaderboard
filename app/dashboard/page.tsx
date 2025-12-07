@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { LocationDetector } from '@/components/location-detector'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -10,6 +11,11 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Redirect to the new community dashboard
-  redirect('https://tinytorch.ai/community/dashboard.html')
+  // Detect location on first visit after signup/confirmation
+  return (
+    <>
+      <LocationDetector userId={user.id} />
+      {redirect('https://tinytorch.ai/community/dashboard.html')}
+    </>
+  )
 }
