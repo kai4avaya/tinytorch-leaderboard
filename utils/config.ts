@@ -45,6 +45,8 @@ export const LOCAL_DEV_URL = 'http://localhost:3000'
 export const ALLOWED_ORIGINS = [
   'https://kai4avaya.github.io', // Allow the GitHub Pages domain
   'https://tinytorch.ai',
+  'https://mlsysbook.ai',
+  'https://www.mlsysbook.ai',
   'http://localhost:2021', // Always allow localhost:2021
   SITE_URL, // Allow the deployed site itself
   ...(IS_DEV ? ['http://localhost:3000'] : []), // Only allow localhost:3000 in dev mode
