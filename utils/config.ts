@@ -44,6 +44,7 @@ export const LOCAL_DEV_URL = 'http://localhost:3000'
  */
 export const ALLOWED_ORIGINS = [
   'https://kai4avaya.github.io', // Allow the GitHub Pages domain
+  'https://harvard-edge.github.io',
   'https://tinytorch.ai',
   'https://mlsysbook.ai',
   'https://www.mlsysbook.ai',
