@@ -11,12 +11,30 @@ interface Credentials {
   password: string
 }
 
+function redirectWithError(message: string, formData: FormData) {
+  const redirectTo = formData.get('redirect_to') as string
+  let url = `/login?error=${encodeURIComponent(message)}`
+  if (redirectTo) {
+    url += `&redirect_to=${encodeURIComponent(redirectTo)}`
+  }
+  redirect(url)
+}
+
+function getRedirectPath(formData: FormData): string {
+  const redirectPath = formData.get('redirect_to') as string
+  // Basic security check: ensure it starts with / and doesn't contain protocol relative URL (//)
+  if (redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
+    return redirectPath
+  }
+  return '/'
+}
+
 function getCredentials(formData: FormData): Credentials {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
   if (!email || !password) {
-    redirect('/login?error=' + encodeURIComponent('Email and password are required'))
+    redirectWithError('Email and password are required', formData)
   }
 
   return {
@@ -33,22 +51,30 @@ export async function login(formData: FormData) {
 
   if (error) {
     console.error('Login error:', error)
-    redirect(`/login?error=${encodeURIComponent(error.message)}`)
+    redirectWithError(error.message, formData)
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  redirect(getRedirectPath(formData))
 }
 
 export async function signup(formData: FormData) {
   const supabase = await createClient()
   const credentials = getCredentials(formData)
+  
+  const redirectPath = getRedirectPath(formData)
+  const emailRedirectTo = getUrl(`/auth/confirm?next=${encodeURIComponent(redirectPath)}`)
 
-  const { data, error } = await supabase.auth.signUp(credentials)
+  const { data, error } = await supabase.auth.signUp({
+    ...credentials,
+    options: {
+      emailRedirectTo,
+    },
+  })
 
   if (error) {
     console.error('Signup error:', error)
-    redirect(`/login?error=${encodeURIComponent(error.message)}`)
+    redirectWithError(error.message, formData)
   }
 
   // If signup returns immediate session (auto-confirm enabled), detect location
@@ -58,7 +84,7 @@ export async function signup(formData: FormData) {
       await updateProfileLocation(data.user.id, location, supabase)
     }
     revalidatePath('/', 'layout')
-    redirect('/dashboard')
+    redirect(redirectPath)
   }
 
   redirect('/login?message=Check your email to confirm your account')

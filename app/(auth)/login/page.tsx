@@ -5,16 +5,20 @@ import { login, signup, requestPasswordReset } from './actions'
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; message?: string }>
+  searchParams: Promise<{ error?: string | string[]; message?: string | string[]; redirect_to?: string | string[] }>
 }) {
   // Await searchParams to access its properties
   const params = await searchParams
   
+  const redirectTo = Array.isArray(params.redirect_to) ? params.redirect_to[0] : params.redirect_to
+  const error = Array.isArray(params.error) ? params.error[0] : params.error
+  const message = Array.isArray(params.message) ? params.message[0] : params.message
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (user) {
-    redirect('/dashboard')
+    redirect(redirectTo || '/')
   }
 
   return (
@@ -29,24 +33,25 @@ export default async function LoginPage({
           </div>
 
         {/* Error Message */}
-        {params.error && (
+        {error && (
           <div className="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
             <p className="text-sm text-red-800 dark:text-red-400">
-              {params.error}
+              {error}
             </p>
           </div>
         )}
 
         {/* Success Message */}
-        {params.message && (
+        {message && (
           <div className="mb-4 rounded-md bg-green-50 p-4 dark:bg-green-900/20">
             <p className="text-sm text-green-800 dark:text-green-400">
-              {params.message}
+              {message}
             </p>
           </div>
         )}
         
         <form className="space-y-4">
+          <input type="hidden" name="redirect_to" value={redirectTo || ''} />
           <div>
             <label
               htmlFor="email"
