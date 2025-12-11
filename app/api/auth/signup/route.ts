@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { getCorsHeaders } from '@/lib/cors' // Import the new helper
+import { getCorsHeaders } from '@/lib/cors'
+import { getUrl, ALLOWED_ORIGINS } from '@/utils/config'
 
 export async function POST(request: NextRequest) {
   const corsHeaders = getCorsHeaders(request, { methods: 'POST, OPTIONS' });
 
   try {
-    const { email, password } = await request.json()
+    const { email, password, redirect_to } = await request.json()
 
     if (!email || !password) {
       return NextResponse.json(
@@ -15,10 +16,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Determine redirect path
+    let redirectPath = '/'
+    if (redirect_to) {
+      // Check if it's an allowed absolute URL
+      const isAllowedOrigin = ALLOWED_ORIGINS.some(origin => redirect_to.startsWith(origin))
+      if (isAllowedOrigin) {
+        redirectPath = redirect_to
+      } else if (redirect_to.startsWith('/') && !redirect_to.startsWith('//')) {
+        // Internal relative path
+        redirectPath = redirect_to
+      }
+    }
+
+    // Construct the email redirect URL to route through our confirmation handler
+    const emailRedirectTo = getUrl(`/auth/confirm?next=${encodeURIComponent(redirectPath)}`)
+
     const supabase = await createClient()
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo,
+      },
     })
 
     if (error) {
