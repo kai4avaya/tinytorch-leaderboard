@@ -77,13 +77,10 @@ export async function GET(request: NextRequest) {
         redirectTo.pathname = '/auth/reset-password'
         return NextResponse.redirect(redirectTo)
       } else if (type === 'email') {
-        // Email confirmation
-        // Only default to /login if we aren't being sent somewhere specific (like cli-login)
-        if (!next.includes('cli-login') && (redirectTo.pathname === '/' || redirectTo.pathname === '/login')) {
-          redirectTo.pathname = '/login'
-        }
-        redirectTo.searchParams.set('message', 'Email confirmed successfully')
-        return NextResponse.redirect(redirectTo)
+        // Email confirmation: Hardcode redirect to the community site as per user request
+        const communityRedirectUrl = new URL('https://mlsysbook.ai/tinytorch/community/?action=join')
+        communityRedirectUrl.searchParams.set('message', 'Email confirmed successfully')
+        return NextResponse.redirect(communityRedirectUrl)
       }
       // Default redirect
       return NextResponse.redirect(redirectTo)
