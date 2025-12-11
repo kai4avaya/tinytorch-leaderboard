@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { getUrl } from '@/utils/config'
+import { getUrl, ALLOWED_ORIGINS } from '@/utils/config'
 import { detectLocation, updateProfileLocation } from '@/lib/location-service'
 
 interface Credentials {
@@ -22,8 +22,19 @@ function redirectWithError(message: string, formData: FormData) {
 
 function getRedirectPath(formData: FormData): string {
   const redirectPath = formData.get('redirect_to') as string
+
+  if (!redirectPath) {
+    return '/'
+  }
+
+  // Check if it's an allowed absolute URL
+  const isAllowedOrigin = ALLOWED_ORIGINS.some(origin => redirectPath.startsWith(origin))
+  if (isAllowedOrigin) {
+    return redirectPath
+  }
+
   // Basic security check: ensure it starts with / and doesn't contain protocol relative URL (//)
-  if (redirectPath && redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
+  if (redirectPath.startsWith('/') && !redirectPath.startsWith('//')) {
     return redirectPath
   }
   return '/'
