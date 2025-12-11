@@ -49,6 +49,7 @@ export const ALLOWED_ORIGINS = [
   'https://mlsysbook.ai',
   'https://www.mlsysbook.ai',
   'http://localhost:2021', // Always allow localhost:2021
+  'http://localhost:8000', // Allow localhost:8000 for testing
   SITE_URL, // Allow the deployed site itself
   ...(IS_DEV ? ['http://localhost:3000'] : []), // Only allow localhost:3000 in dev mode
 ]
