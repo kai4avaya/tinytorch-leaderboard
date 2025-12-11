@@ -17,6 +17,7 @@ export function getCorsHeaders(request: NextRequest, options: CorsOptions = {}) 
     'Access-Control-Allow-Methods': allowedMethods,
     'Access-Control-Allow-Headers': allowedHeaders,
     'Access-Control-Max-Age': maxAge.toString(),
+    'Access-Control-Allow-Credentials': 'true',
   };
 
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
