@@ -23,12 +23,12 @@ function redirectToLocalhost(redirectPort: string, session: any, user: any) {
 }
 
 function redirectToCLILogin(redirectPort: string, error?: string) {
-  const url = new URL(CLI_LOGIN_URL)
-  url.searchParams.set('redirect_port', redirectPort)
+  const params = new URLSearchParams()
+  params.set('redirect_port', redirectPort)
   if (error) {
-    url.searchParams.set('error', error)
+    params.set('error', error)
   }
-  redirect(url.toString())
+  redirect(`/cli-login?${params.toString()}`)
 }
 
 export async function login(formData: FormData) {
