@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { login, signup, requestPasswordReset } from './actions'
+import { LoggedInView } from '@/components/logged-in-view'
 
 export default async function LoginPage({
   searchParams,
@@ -18,7 +19,12 @@ export default async function LoginPage({
   const { data: { user } } = await supabase.auth.getUser()
 
   if (user) {
-    redirect(redirectTo || '/')
+    // If the user has a specific redirect intent, we honor it.
+    // Otherwise, we show the logged-in state.
+    if (redirectTo && redirectTo !== '/') {
+       redirect(redirectTo)
+    }
+    return <LoggedInView userEmail={user.email} />
   }
 
   return (
