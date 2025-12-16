@@ -90,9 +90,9 @@ export async function signup(formData: FormData) {
 
   // If signup returns immediate session (auto-confirm enabled), detect location
   if (data.session && data.user?.id) {
-    const location = await detectLocation()
-    if (location) {
-      await updateProfileLocation(data.user.id, location, supabase)
+    const locationData = await detectLocation()
+    if (locationData) {
+      await updateProfileLocation(data.user.id, locationData, supabase)
     }
     revalidatePath('/', 'layout')
     redirect(redirectPath)

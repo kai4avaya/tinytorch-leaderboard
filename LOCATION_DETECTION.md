@@ -47,7 +47,7 @@ The implementation covers **all signup scenarios**:
 ### Prerequisites
 Your database must have:
 
-1. **`profiles` table** with a `location` column (text/varchar)
+1. **`profiles` table** with `location` (text), `latitude` (numeric), and `longitude` (numeric) columns
 2. **RLS Policy** allowing authenticated users to update their own profile:
    ```sql
    CREATE POLICY "Users can update own profile" 
@@ -84,7 +84,7 @@ Your database must have:
 ## API Used
 
 - **ipapi.co** - Free IP geolocation API (no auth required)
-- Returns: `{ city, country_name, ... }`
+- Returns: `{ city, country_name, latitude, longitude, ... }`
 - Fallback: If city unavailable, uses country only
 
 ## Testing
@@ -103,10 +103,10 @@ To test the implementation:
 
 3. **Check profile**:
    ```sql
-   SELECT id, email, location FROM public.profiles WHERE email = 'test@example.com';
+   SELECT id, email, location, latitude, longitude FROM public.profiles WHERE email = 'test@example.com';
    ```
 
-Expected: Location field populated with "City, Country" or "Country"
+Expected: Location field populated with "City, Country" or "Country", and lat/long with numeric values.
 
 ## Error Handling
 

@@ -111,9 +111,9 @@ export async function signup(formData: FormData) {
   if (data.session) {
     // Auto-confirmed or existing session - detect location in background
     if (data.user?.id) {
-      const location = await detectLocation()
-      if (location) {
-        await updateProfileLocation(data.user.id, location, supabase)
+      const locationData = await detectLocation()
+      if (locationData) {
+        await updateProfileLocation(data.user.id, locationData, supabase)
       }
     }
     

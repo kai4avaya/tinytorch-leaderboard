@@ -3,7 +3,7 @@
  * Detects user location via IP geolocation API and updates profile
  */
 
-export async function detectLocation(): Promise<string | null> {
+export async function detectLocation(): Promise<{ locationString: string | null; latitude: number | null; longitude: number | null } | null> {
   try {
     const geoRes = await fetch('https://ipapi.co/json/', { 
       cache: 'no-store',
@@ -20,18 +20,30 @@ export async function detectLocation(): Promise<string | null> {
       ? `${geo.city}, ${geo.country_name}` 
       : geo.country_name || null
 
-    return locationString
+    return {
+      locationString,
+      latitude: geo.latitude || null,
+      longitude: geo.longitude || null
+    }
   } catch (err) {
     console.warn('Location detection failed (non-critical):', err)
     return null
   }
 }
 
-export async function updateProfileLocation(userId: string, location: string, supabaseClient: any) {
+export async function updateProfileLocation(
+  userId: string, 
+  locationData: { locationString: string | null; latitude: number | null; longitude: number | null }, 
+  supabaseClient: any
+) {
   try {
     const { error } = await supabaseClient
       .from('profiles')
-      .update({ location })
+      .update({ 
+        location: locationData.locationString,
+        latitude: locationData.latitude,
+        longitude: locationData.longitude
+      })
       .eq('id', userId)
 
     if (error) {
@@ -39,7 +51,7 @@ export async function updateProfileLocation(userId: string, location: string, su
       return false
     }
     
-    console.log('✅ Profile updated with location:', location)
+    console.log('✅ Profile updated with location:', locationData.locationString)
     return true
   } catch (err) {
     console.warn('Location update failed:', err)

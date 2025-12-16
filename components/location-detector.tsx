@@ -32,9 +32,9 @@ export function LocationDetector({ userId }: { userId: string }) {
       }
 
       // Detect and update location
-      const location = await detectLocation()
-      if (location) {
-        await updateProfileLocation(userId, location, supabase)
+      const locationData = await detectLocation()
+      if (locationData) {
+        await updateProfileLocation(userId, locationData, supabase)
       }
     }
 
