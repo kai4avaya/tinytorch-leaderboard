@@ -33,6 +33,7 @@ export function ProfileForm({
   const [institution, setInstitution] = useState(initialProfile?.institution?.[0] || '')
   const [website, setWebsite] = useState(initialProfile?.website?.[0] || '')
   const [summary, setSummary] = useState(initialProfile?.summary || '')
+  const [subscribe, setSubscribe] = useState<boolean>(initialProfile?.subscribe ?? true)
 
   // Location State
   const [location, setLocation] = useState<string>(initialProfile?.location || '')
@@ -235,6 +236,7 @@ export function ProfileForm({
             <input type="hidden" name="avatar_url" value={avatarUrl} />
             <input type="hidden" name="latitude" value={lat || ''} />
             <input type="hidden" name="longitude" value={lon || ''} />
+            <input type="hidden" name="subscribe" value={subscribe.toString()} />
 
             {/* Avatar Section */}
             <div className="space-y-4">
@@ -370,6 +372,20 @@ export function ProfileForm({
                   <FileText className="absolute left-3 top-3 text-zinc-400" size={16} />
                   <textarea name="summary" rows={3} value={summary} onChange={e => setSummary(e.target.value)} placeholder="Tell us about yourself..." className="w-full rounded-md border border-zinc-300 bg-white pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-zinc-500" />
                 </div>
+              </div>
+
+              {/* Subscribe Checkbox */}
+              <div className="col-span-full flex items-center space-x-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="subscribe"
+                  checked={subscribe}
+                  onChange={(e) => setSubscribe(e.target.checked)}
+                  className="h-4 w-4 rounded border-zinc-300 text-black focus:ring-black dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-zinc-500"
+                />
+                <label htmlFor="subscribe" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-700 dark:text-zinc-300">
+                  Subscribe to our mailing list
+                </label>
               </div>
             </div>
 

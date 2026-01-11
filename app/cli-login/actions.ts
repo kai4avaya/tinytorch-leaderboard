@@ -167,6 +167,7 @@ export async function updateProfile(formData: FormData) {
   const website = formData.get('website') as string
   const summary = formData.get('summary') as string
   const avatarUrl = formData.get('avatar_url') as string
+  const subscribe = formData.get('subscribe') === 'true'
   
   if (!redirectPort) {
     return { error: 'Missing redirect_port' }
@@ -191,6 +192,7 @@ export async function updateProfile(formData: FormData) {
     website: website ? [website] : undefined, 
     summary: summary || undefined,
     avatar_url: avatarUrl || undefined,
+    subscribe: subscribe,
   }
 
   const filteredProfileData = Object.fromEntries(
