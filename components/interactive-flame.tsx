@@ -47,7 +47,7 @@ export function InteractiveFlame() {
   }
 
   return (
-    <div className={styles.flameContainer}>
+    <div className={styles.flameContainer + " !h-full border-none rounded-none"}>
         {/* Glow */}
         <div 
             className={styles.glow} 
@@ -60,7 +60,7 @@ export function InteractiveFlame() {
         />
 
         {/* Flame Wrapper centered */}
-        <div className={styles.flameWrapper}>
+        <div className={styles.flameWrapper + " flex-1 !h-auto w-full relative"}>
             {level > 0.5 && (
                 <div 
                     className={styles.flame} 

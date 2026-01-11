@@ -212,11 +212,12 @@ export function ProfileForm({
   return (
     <div className="flex min-h-screen w-full flex-col md:flex-row bg-white dark:bg-zinc-900">
       {/* LEFT: FORM */}
-      <div className="flex w-full md:w-1/2 flex-col justify-center p-6 md:p-12 overflow-y-auto max-h-screen">
+      <div className="flex w-full md:w-1/2 flex-col justify-start p-6 md:p-12 pt-8 md:pt-12 overflow-y-auto max-h-screen">
         <div className="mx-auto w-full max-w-lg">
-          <div className="mb-8 text-center md:text-left">
-            <img src="/logo-tinytorch.png" alt="Tiny Torch Logo" className="mx-auto md:mx-0 h-16 w-auto" />
-            <h1 className="mt-4 text-2xl font-semibold text-black dark:text-zinc-50">Complete Your Profile</h1>
+          <div className="mb-8 text-left">
+            <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">
+              🔥 Tiny 🔥 Torch: Complete Your Profile
+            </h1>
             <p className="text-zinc-500 dark:text-zinc-400">Tell us a bit about yourself to get started</p>
           </div>
 

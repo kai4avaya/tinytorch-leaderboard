@@ -13,12 +13,12 @@ export function RedirectWithMessage({ redirectUrl }: RedirectWithMessageProps) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Use router.replace to navigate and replace the current entry in the history stack
-      router.replace(redirectUrl)
-    }, 3000) // Redirect after 3 seconds
+      // Use window.location.href for cross-origin/protocol redirects (e.g. to localhost CLI)
+      window.location.href = redirectUrl
+    }, 1000) // Redirect after 1 second
 
     return () => clearTimeout(timer) // Cleanup the timer
-  }, [redirectUrl, router])
+  }, [redirectUrl])
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
