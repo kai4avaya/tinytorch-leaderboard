@@ -19,12 +19,24 @@ export default async function CLILoginPage({
   }>
 }) {
   const params = await searchParams
-  const redirectPort = params.redirect_port
+  let redirectPort = params.redirect_port
   const redirectTo = params.redirect_to
   const initialEmail = params.email
   const initialName = params.name
   const initialAffiliation = params.affiliation
   const isTestUI = params.test_ui === 'true'
+
+  // Extract port from redirectTo if missing
+  if (!redirectPort && redirectTo) {
+    try {
+      const url = new URL(redirectTo)
+      if (url.port) {
+        redirectPort = url.port
+      }
+    } catch (e) {
+      // ignore invalid URL
+    }
+  }
 
   if (isTestUI) {
     // Test Mode: Render ProfileForm directly (it handles its own layout)

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, LogOut, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { WarpedGraphBackground } from '@/components/warped-graph-background'
 
 interface CliStateViewProps {
   state: 'login' | 'logout'
@@ -18,8 +19,9 @@ export function CliStateView({ state, email }: CliStateViewProps) {
   const isLogin = state === 'login'
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50/50 p-4 dark:bg-zinc-950/50">
-      <div className="w-full max-w-md overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
+      <WarpedGraphBackground />
+      <div className="w-full max-w-md overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900 relative z-10">
         
         {/* Header with Logo */}
         <div className="flex flex-col items-center border-b border-zinc-100 bg-zinc-50/50 p-8 dark:border-zinc-800/50 dark:bg-zinc-900/50">

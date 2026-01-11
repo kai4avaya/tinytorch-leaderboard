@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { login, signup, requestPasswordReset } from './actions'
 import { LoggedInView } from '@/components/logged-in-view'
+import { WarpedGraphBackground } from '@/components/warped-graph-background'
 
 export default async function LoginPage({
   searchParams,
@@ -29,7 +30,8 @@ export default async function LoginPage({
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-lg border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <WarpedGraphBackground />
+        <div className="w-full max-w-md rounded-lg border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 relative z-10">
         <div className="mb-4 flex items-center">
           <img 
             src="/logo-tinytorch.png" 
