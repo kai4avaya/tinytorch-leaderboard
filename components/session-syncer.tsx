@@ -25,7 +25,13 @@ export function SessionSyncer({
       })
 
       if (!error) {
-        // Refresh the page to trigger the server-side Profile Guard
+        // Strip tokens from URL to prevent infinite loop
+        const url = new URL(window.location.href)
+        url.searchParams.delete('access_token')
+        url.searchParams.delete('refresh_token')
+        
+        // Navigate to the clean URL so the server component sees we are done syncing
+        router.replace(url.pathname + url.search)
         router.refresh()
       } else {
         console.error('Failed to sync session:', error)
