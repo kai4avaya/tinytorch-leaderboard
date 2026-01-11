@@ -383,7 +383,7 @@ export function ProfileForm({
       </div>
       
       {/* RIGHT: FLAME */}
-      <div className="hidden md:flex w-full md:w-1/2 flex-col items-center justify-center bg-zinc-950 p-8 border-l border-zinc-800 min-h-screen sticky top-0">
+      <div className="hidden md:flex w-full md:w-1/2 flex-col items-center justify-center bg-zinc-950 border-l border-zinc-800 min-h-screen sticky top-0">
           <InteractiveFlame />
       </div>
     </div>

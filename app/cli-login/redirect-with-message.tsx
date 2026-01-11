@@ -3,7 +3,6 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation' // Use next/navigation for client-side navigation
 import { Loader2 } from 'lucide-react' // Use Loader2 for a spinner
-import { WarpedGraphBackground } from '@/components/warped-graph-background'
 
 interface RedirectWithMessageProps {
   redirectUrl: string
@@ -22,9 +21,8 @@ export function RedirectWithMessage({ redirectUrl }: RedirectWithMessageProps) {
   }, [redirectUrl])
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <WarpedGraphBackground />
-      <div className="w-full max-w-md rounded-lg border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 text-center relative z-10">
+    <div className="flex min-h-screen items-center justify-center p-4 bg-zinc-50 dark:bg-zinc-950">
+      <div className="w-full max-w-md rounded-lg border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 text-center">
         <Loader2 className="mx-auto h-8 w-8 animate-spin text-black dark:text-zinc-50 mb-4" />
         <h1 className="mb-2 text-xl font-semibold text-black dark:text-zinc-50">
           You are now logged in to 🔥 Tiny Torch.
