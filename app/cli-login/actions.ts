@@ -9,7 +9,7 @@ import { detectLocation, updateProfileLocation } from '@/lib/location-service'
 // Supabase Edge Function endpoint for profile updates
 const UPDATE_PROFILE_EDGE_FUNCTION_URL = 'https://zrvmjrxhokwwmjacyhpq.supabase.co/functions/v1/update-profile'
 
-function redirectToLocalhost(redirectPort: string, session: any, user: any) {
+function getLocalhostRedirectUrl(redirectPort: string, session: any, user: any) {
   const localhostUrl = new URL(`http://127.0.0.1:${redirectPort}/callback`)
   localhostUrl.searchParams.set('access_token', session.access_token)
   localhostUrl.searchParams.set('refresh_token', session.refresh_token)
@@ -19,7 +19,7 @@ function redirectToLocalhost(redirectPort: string, session: any, user: any) {
   if (user?.email) {
     localhostUrl.searchParams.set('email', user.email)
   }
-  redirect(localhostUrl.toString())
+  return localhostUrl.toString()
 }
 
 function redirectToCLILogin(redirectPort: string, error?: string) {
@@ -66,22 +66,17 @@ export async function signup(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const redirectPort = formData.get('redirect_port') as string
-  // The frontend should pass the full local callback URL if available
   const redirectTo = formData.get('redirect_to') as string 
 
   if (!email || !password) {
     return { error: 'Email and password are required' }
   }
 
-  // Determine the email confirmation redirect URL
   let emailRedirectTo: string;
 
   if (redirectTo) {
-    // We must route through our /auth/confirm endpoint to handle the PKCE code exchange
-    // and append tokens before redirecting to the local CLI server.
     emailRedirectTo = getUrl(`/auth/confirm?next=${encodeURIComponent(redirectTo)}`)
   } else if (redirectPort) {
-    // Legacy/Fallback support for just the port
     const nextPath = `/cli-login?redirect_port=${redirectPort}`
     emailRedirectTo = getUrl(`/auth/confirm?next=${encodeURIComponent(nextPath)}`)
   } else {
@@ -109,7 +104,6 @@ export async function signup(formData: FormData) {
   }
 
   if (data.session) {
-    // Auto-confirmed or existing session - detect location in background
     if (data.user?.id) {
       const locationData = await detectLocation()
       if (locationData) {
@@ -118,7 +112,12 @@ export async function signup(formData: FormData) {
     }
     
     if (redirectTo) {
-        // If we have a direct URL, redirect there with tokens
+        // Construct URL manually to avoid server-side redirect issues to localhost if needed, 
+        // but typically signup flow via form is fine. 
+        // However, if redirectTo is localhost, we should handle it carefully.
+        // For consistency with updateProfile, we return the URL if possible, 
+        // BUT signup is usually a form submission that expects a page reload or standard redirect.
+        // Let's stick to redirect() here as signup flow handles internal redirects well usually.
         const finalUrl = new URL(redirectTo)
         finalUrl.searchParams.set('access_token', data.session.access_token)
         finalUrl.searchParams.set('refresh_token', data.session.refresh_token)
@@ -157,7 +156,6 @@ export async function requestPasswordReset(formData: FormData) {
   return { success: true, message: 'Password reset email sent. Check your inbox.' }
 }
 
-// Profile actions are kept for potential future use but are not used in the current flow
 export async function updateProfile(formData: FormData) {
   const redirectPort = formData.get('redirect_port') as string
   const username = formData.get('username') as string
@@ -215,7 +213,10 @@ export async function updateProfile(formData: FormData) {
       return { error: result.error || 'Failed to update profile via Edge Function' }
     }
 
-    redirectToLocalhost(redirectPort, session, session.user)
+    // Return the URL for client-side navigation
+    const redirectUrl = getLocalhostRedirectUrl(redirectPort, session, session.user)
+    return { success: true, redirectUrl }
+    
   } catch (err: any) {
     return { error: err.message || 'An unexpected error occurred during profile update.' }
   }
@@ -259,7 +260,10 @@ export async function skipProfile(formData: FormData) {
       return { error: result.error || 'Failed to skip profile via Edge Function' }
     }
     
-    redirectToLocalhost(redirectPort, session, session.user)
+    // Return the URL for client-side navigation
+    const redirectUrl = getLocalhostRedirectUrl(redirectPort, session, session.user)
+    return { success: true, redirectUrl }
+
   } catch (err: any) {
     return { error: err.message || 'An unexpected error occurred during profile skip.' }
   }

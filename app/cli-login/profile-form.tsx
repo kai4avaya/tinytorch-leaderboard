@@ -201,6 +201,9 @@ export function ProfileForm({
         const result = await updateProfile(formData)
         if (result?.error) {
           setMessage({ type: 'error', text: result.error })
+        } else if (result?.redirectUrl) {
+          // Use window.location.href to force navigation to localhost
+          window.location.href = result.redirectUrl
         }
       } catch (e) {
         if ((e as Error).message === 'NEXT_REDIRECT') throw e
