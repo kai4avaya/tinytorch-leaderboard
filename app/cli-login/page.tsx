@@ -3,28 +3,35 @@ import { LoginForm } from './login-form'
 import { RedirectWithMessage } from './redirect-with-message'
 import { LocationDetector } from '@/components/location-detector'
 import { ProfileForm } from './profile-form'
+import { SessionSyncer } from '@/components/session-syncer'
 
 export default async function CLILoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ 
-    redirect_port?: string; 
-    redirect_to?: string; 
-    error?: string; 
+  searchParams: Promise<{
+    redirect_port?: string;
+    redirect_to?: string;
+    error?: string;
     message?: string;
     email?: string;
     name?: string;
     affiliation?: string;
     test_ui?: string;
+    access_token?: string;
+    refresh_token?: string;
   }>
 }) {
   const params = await searchParams
-  let redirectPort = params.redirect_port
+  const redirectPortParam = params.redirect_port
   const redirectTo = params.redirect_to
+  const accessToken = params.access_token
+  const refreshToken = params.refresh_token
   const initialEmail = params.email
   const initialName = params.name
   const initialAffiliation = params.affiliation
   const isTestUI = params.test_ui === 'true'
+
+  let redirectPort = redirectPortParam
 
   // Extract port from redirectTo if missing
   if (!redirectPort && redirectTo) {
@@ -38,8 +45,13 @@ export default async function CLILoginPage({
     }
   }
 
-  if (isTestUI) {
-    // Test Mode: Render ProfileForm directly (it handles its own layout)
+  // 1. Session Restoration (Priority)
+  // If we have tokens in the URL (from OAuth callback), sync them first.
+  if (accessToken && refreshToken) {
+    return <SessionSyncer accessToken={accessToken} refreshToken={refreshToken} />
+  }
+
+  if (isTestUI) {    // Test Mode: Render ProfileForm directly (it handles its own layout)
     return (
         <ProfileForm 
           redirectPort={redirectPort || '9999'}

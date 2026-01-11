@@ -22,6 +22,11 @@ export async function GET(request: Request) {
         const guardUrl = new URL(request.url)
         guardUrl.pathname = '/cli-login'
         guardUrl.searchParams.set('redirect_to', next)
+        
+        // Pass tokens to allow client-side session restoration (robust against cookie failures)
+        guardUrl.searchParams.set('access_token', data.session.access_token)
+        guardUrl.searchParams.set('refresh_token', data.session.refresh_token)
+        
         // Clean up other params
         guardUrl.searchParams.delete('code')
         guardUrl.searchParams.delete('next')
