@@ -1,109 +1,104 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef } from 'react'
 
 export function AnimatedBackground() {
-  const [scrollY, setScrollY] = useState(0)
-  const [isMobile, setIsMobile] = useState(false)
-
-  // Color palette
-  const colors = [
-    "#6b8bd6", // Blue
-    "#999999", // Gray
-    "#8b7bd6", // Purple
-    "#7bd6a8", // Green
-    "#d67b9f", // Pink
-    "#d6a87b", // Orange
-  ]
-
-  // Generate color on client side only to avoid hydration mismatch
-  const [gridColor, setGridColor] = useState<string | null>(null) // null until mounted
-  const [isMounted, setIsMounted] = useState(false)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
-    // Mark as mounted and generate random color on client side only
-    setIsMounted(true)
-    setGridColor(colors[Math.floor(Math.random() * colors.length)])
-  }, [])
+    const canvas = canvasRef.current
+    if (!canvas) return
 
-  useEffect(() => {
-    // Track scroll for grid reorientation
-    const handleScroll = () => {
-      setScrollY(window.scrollY)
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let animationFrameId: number
+    let startTime = Date.now()
+
+    const render = () => {
+      const currentTime = Date.now()
+      // Loop time every 10 seconds to keep animation alive
+      const rawT = (currentTime - startTime) / 1000
+      const t_seconds = rawT % 15 
+
+      // Resize canvas to window
+      if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+      }
+
+      // Clear canvas with a dark background to make the "sparks" pop
+      ctx.fillStyle = '#09090b' // zinc-950
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      // Center the coordinate system somewhat? 
+      // The algo produces specific coords. We might need to translate.
+      // Dwitter usually assumes 1920x1080 or similar.
+      // Let's analyze bounds: x roughly 0-2000*s?
+      // We'll just run it and apply a transform if needed.
+      // Actually, let's wrap the draw in save/restore and translate to center-ish.
+      
+      ctx.save()
+      // Dwitter standard canvas is usually small (1920x1080).
+      // We'll scale slightly to fit screen.
+      // And move origin? The algo uses (i**5%a)*s for X. 
+      // Let's try drawing from top-left (0,0).
+      
+      // Algorithm implementation
+      let a = 2000
+      let t = t_seconds * 60
+      let s = 0.5
+      
+      // fillStyle=`hsl(${t?t%30+9:a} 50%${t?t/2-t%9:75}%`
+      // Cleaning up the HSL string
+      const hue = t ? (t % 30 + 9) : a
+      const lightness = t ? (t / 2 - t % 9) : 75
+      ctx.fillStyle = `hsl(${hue}, 50%, ${Math.max(0, Math.min(100, lightness))}%)`
+
+      for (let i = a; i > 0; i--) {
+        s *= 1.01
+        
+        const w_raw = t ? 99 - t + i % 119 : i
+        const threshold = (Math.pow(i, 4) % 59) + 9
+        
+        if (w_raw > threshold) {
+           let w = w_raw
+           
+           // x = (i**5%a + S(t/9+i)*9)*s
+           // y = (290-t)*s
+           const x_pos = (Math.pow(i, 5) % a + Math.sin(t / 9 + i) * 9) * s
+           const y_pos = (290 - t) * s
+           
+           w *= s // Scale size
+           
+           // Ensure positive radius for ellipse
+           const rx = Math.abs(w)
+           const ry = Math.abs(w / 5)
+           
+           if (rx > 0 && ry > 0) {
+             ctx.beginPath()
+             ctx.ellipse(x_pos, y_pos, rx, ry, 0, 0, 9) // 9 radians rotation? Dwitter usually uses radians. 9 rad is ~2.7 rad (approx 155 deg)
+             ctx.fill()
+           }
+        }
+      }
+      ctx.restore()
+
+      animationFrameId = requestAnimationFrame(render)
     }
 
-    // Check screen size
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    checkScreenSize()
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    window.addEventListener("resize", checkScreenSize)
+    render()
 
     return () => {
-      window.removeEventListener("scroll", handleScroll)
-      window.removeEventListener("resize", checkScreenSize)
+      cancelAnimationFrame(animationFrameId)
     }
   }, [])
 
-  // Base background color
-  const baseColor = "#fafafa"
-  
-  // Convert hex to rgba for opacity control
-  const hexToRgba = (hex: string, alpha: number) => {
-    const r = parseInt(hex.slice(1, 3), 16)
-    const g = parseInt(hex.slice(3, 5), 16)
-    const b = parseInt(hex.slice(5, 7), 16)
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
-  }
-  
-  // Calculate rotation based on scroll (more dramatic 3D effect)
-  // On mobile, rotate more for better visibility
-  const maxRotationX = isMobile ? 15 : 12
-  const maxRotationY = isMobile ? 10 : 8
-  const rotationX = Math.min(scrollY * 0.03, maxRotationX)
-  const rotationY = Math.min(scrollY * 0.02, maxRotationY)
-  
-  // Grid size based on screen
-  const gridSize = isMobile ? 40 : 60
-  const subGridSize = isMobile ? 20 : 30
-
-  // Faint colored grid lines (use default color until mounted to avoid hydration mismatch)
-  const currentColor = gridColor || colors[0]
-  const mainGridColor = hexToRgba(currentColor, 0.06)
-  const subGridColor = hexToRgba(currentColor, 0.035)
-
   return (
-    <div
-      className="fixed inset-0 -z-10 overflow-hidden"
-      style={{
-        background: baseColor,
-      }}
-    >
-      {/* 3D Grid with perspective and color */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `
-            linear-gradient(${mainGridColor} 1px, transparent 1px),
-            linear-gradient(90deg, ${mainGridColor} 1px, transparent 1px),
-            linear-gradient(${subGridColor} 1px, transparent 1px),
-            linear-gradient(90deg, ${subGridColor} 1px, transparent 1px)
-          `,
-          backgroundSize: `
-            ${gridSize}px ${gridSize}px,
-            ${gridSize}px ${gridSize}px,
-            ${subGridSize}px ${subGridSize}px,
-            ${subGridSize}px ${subGridSize}px
-          `,
-          backgroundPosition: "0 0, 0 0, 0 0, 0 0",
-          transform: `perspective(1000px) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`,
-          transformStyle: "preserve-3d",
-          transformOrigin: "50% 50%",
-          willChange: "transform",
-        }}
-      />
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 h-full w-full opacity-50 pointer-events-none"
+      style={{ zIndex: 0 }}
+    />
   )
 }

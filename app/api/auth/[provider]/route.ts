@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { NextRequest } from 'next/server'
 import { Provider } from '@supabase/supabase-js'
+import { getUrl } from '@/utils/config'
 
 export async function GET(
   request: NextRequest,
@@ -26,8 +27,8 @@ export async function GET(
     provider: provider as Provider,
     options: {
       // The redirectTo MUST be your Next.js callback route
-      // We pass the final destination (returnTo) as a query param 'next' to the callback
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?next=${encodeURIComponent(returnTo)}`,
+      // We use getUrl to ensure we have a valid absolute URL (localhost in dev, production otherwise)
+      redirectTo: `${getUrl('/api/auth/callback')}?next=${encodeURIComponent(returnTo)}`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',

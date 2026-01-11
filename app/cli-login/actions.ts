@@ -164,6 +164,8 @@ export async function updateProfile(formData: FormData) {
   const fullName = formData.get('full_name') as string
   const institution = formData.get('institution') as string
   const location = formData.get('location') as string
+  const latitude = formData.get('latitude')
+  const longitude = formData.get('longitude')
   const website = formData.get('website') as string
   const summary = formData.get('summary') as string
   const avatarUrl = formData.get('avatar_url') as string
@@ -186,6 +188,8 @@ export async function updateProfile(formData: FormData) {
     full_name: fullName || undefined,
     institution: institution ? [institution] : undefined, 
     location: location || undefined,
+    latitude: latitude ? parseFloat(latitude.toString()) : undefined,
+    longitude: longitude ? parseFloat(longitude.toString()) : undefined,
     website: website ? [website] : undefined, 
     summary: summary || undefined,
     avatar_url: avatarUrl || undefined,

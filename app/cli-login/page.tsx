@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { LoginForm } from './login-form'
 import { RedirectWithMessage } from './redirect-with-message'
 import { LocationDetector } from '@/components/location-detector'
+import { ProfileForm } from './profile-form'
 
 export default async function CLILoginPage({
   searchParams,
@@ -14,6 +15,7 @@ export default async function CLILoginPage({
     email?: string;
     name?: string;
     affiliation?: string;
+    test_ui?: string;
   }>
 }) {
   const params = await searchParams
@@ -22,6 +24,18 @@ export default async function CLILoginPage({
   const initialEmail = params.email
   const initialName = params.name
   const initialAffiliation = params.affiliation
+  const isTestUI = params.test_ui === 'true'
+
+  if (isTestUI) {
+    // Test Mode: Render ProfileForm directly (it handles its own layout)
+    return (
+        <ProfileForm 
+          redirectPort={redirectPort || '9999'}
+          user={{ id: 'test-id', user_metadata: { full_name: 'Demo User' } }}
+          initialProfile={{}}
+        />
+    )
+  }
 
   if (!redirectPort && !redirectTo) {
     return (
@@ -48,6 +62,30 @@ export default async function CLILoginPage({
     // User is already authenticated, get session
     const { data: { session } } = await supabase.auth.getSession()
     if (session) {
+      // Check profile completeness
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+      
+      const hasLocation = profile?.location && profile.location.trim().length > 0
+      const hasInstitution = profile?.institution && profile.institution.length > 0
+      // Check full_name as the form uses it for "Display Name"
+      const hasName = profile?.full_name && profile.full_name.trim().length > 0
+
+      if (!hasLocation || !hasInstitution || !hasName) {
+        // Incomplete Profile: Render Form (Full Screen Layout)
+        return (
+            <ProfileForm 
+              redirectPort={redirectPort || ''}
+              redirectTo={redirectTo}
+              user={user}
+              initialProfile={profile}
+            />
+        )
+      }
+
       let finalUrl: URL
       
       if (redirectTo) {
@@ -76,6 +114,7 @@ export default async function CLILoginPage({
     }
   }
 
+  // Not logged in: Render Login Form (Centered)
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <LoginForm 

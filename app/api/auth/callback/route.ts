@@ -12,16 +12,28 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error && data?.session) {
-      // Logic from app/auth/confirm/route.ts to handle CLI redirects
       const isAbsoluteUrl = next.startsWith('http')
-      let finalRedirectUrl: URL
+      
+      // Check if this is a CLI redirect (localhost or 127.0.0.1)
+      const isCLIRedirect = isAbsoluteUrl && (next.includes('127.0.0.1') || next.includes('localhost'))
 
+      if (isCLIRedirect) {
+        // Intercept: Send to the cli-login page first to enforce the Profile Guard
+        const guardUrl = new URL(request.url)
+        guardUrl.pathname = '/cli-login'
+        guardUrl.searchParams.set('redirect_to', next)
+        // Clean up other params
+        guardUrl.searchParams.delete('code')
+        guardUrl.searchParams.delete('next')
+        return NextResponse.redirect(guardUrl)
+      }
+
+      let finalRedirectUrl: URL
       if (isAbsoluteUrl) {
          finalRedirectUrl = new URL(next)
-         // Ensure no code parameter leaks
          finalRedirectUrl.searchParams.delete('code')
          
-         // Append tokens for CLI or external apps that need them in URL
+         // Append tokens for CLI or external apps
          finalRedirectUrl.searchParams.set('access_token', data.session.access_token)
          finalRedirectUrl.searchParams.set('refresh_token', data.session.refresh_token)
          if (data.session.expires_at) finalRedirectUrl.searchParams.set('expires_at', data.session.expires_at.toString())
