@@ -160,6 +160,7 @@ export async function updateProfile(formData: FormData) {
   const redirectPort = formData.get('redirect_port') as string
   const username = formData.get('username') as string
   const fullName = formData.get('full_name') as string
+  const role = formData.get('role') as string
   const institution = formData.get('institution') as string
   const location = formData.get('location') as string
   const latitude = formData.get('latitude')
@@ -185,6 +186,7 @@ export async function updateProfile(formData: FormData) {
   const profileData: Record<string, any> = {
     username: username || undefined,
     full_name: fullName || undefined,
+    role: role || undefined,
     institution: institution ? [institution] : undefined, 
     location: location || undefined,
     latitude: latitude ? parseFloat(latitude.toString()) : undefined,

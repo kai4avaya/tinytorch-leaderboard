@@ -2,7 +2,7 @@
 
 import { useState, useRef, useTransition, useEffect } from 'react'
 import { updateProfile, skipProfile } from './actions'
-import { Loader2, Camera, Upload, Link as LinkIcon, User, MapPin, Globe, Building, FileText } from 'lucide-react'
+import { Loader2, Camera, Upload, Link as LinkIcon, User, MapPin, Globe, Building, FileText, Briefcase } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { InteractiveFlame } from '@/components/interactive-flame'
 
@@ -30,6 +30,7 @@ export function ProfileForm({
   // Form State
   const [displayName, setDisplayName] = useState(initialProfile?.display_name || user?.user_metadata?.full_name || '')
   const [username, setUsername] = useState(initialProfile?.username || user?.user_metadata?.user_name || '')
+  const [role, setRole] = useState(initialProfile?.role || 'student')
   const [institution, setInstitution] = useState(initialProfile?.institution?.[0] || '')
   const [website, setWebsite] = useState(initialProfile?.website?.[0] || '')
   const [summary, setSummary] = useState(initialProfile?.summary || '')
@@ -345,6 +346,24 @@ export function ProfileForm({
                     </ul>
                   </div>
                 )}
+              </div>
+
+              {/* Role */}
+              <div className="col-span-full space-y-2">
+                <label htmlFor="role" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">I am a...</label>
+                <div className="relative">
+                  <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={16} />
+                  <select 
+                    name="role" 
+                    value={role} 
+                    onChange={e => setRole(e.target.value)} 
+                    className="w-full rounded-md border border-zinc-300 bg-white pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-black dark:border-zinc-700 dark:bg-zinc-800 dark:focus:ring-zinc-500 appearance-none"
+                  >
+                    <option value="student">Student</option>
+                    <option value="educator">Educator</option>
+                    <option value="industry">Industry Professional</option>
+                  </select>
+                </div>
               </div>
 
               {/* Institution */}
