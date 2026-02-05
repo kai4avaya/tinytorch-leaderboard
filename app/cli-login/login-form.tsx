@@ -184,7 +184,7 @@ export function LoginForm({
         </button>
       </form>
 
-      {mode === 'login' && (
+      {(mode === 'login' || mode === 'signup') && (
         <>
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
