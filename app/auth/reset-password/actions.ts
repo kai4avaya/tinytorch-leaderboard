@@ -26,5 +26,10 @@ export async function updatePassword(formData: FormData) {
     redirect('/auth/reset-password?error=' + encodeURIComponent(error.message))
   }
 
+  const redirectPort = formData.get('redirect_port') as string
+  if (redirectPort) {
+    redirect(`/cli-login?redirect_port=${redirectPort}&message=${encodeURIComponent('Password updated successfully. Please continue to log in.')}`)
+  }
+
   redirect('/login?message=' + encodeURIComponent('Password updated successfully. Please sign in.'))
 }

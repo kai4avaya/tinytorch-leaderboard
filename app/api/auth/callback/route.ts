@@ -34,21 +34,22 @@ export async function GET(request: Request) {
       }
 
       let finalRedirectUrl: URL
-      if (isAbsoluteUrl) {
-         finalRedirectUrl = new URL(next)
-         finalRedirectUrl.searchParams.delete('code')
-         
-         // Append tokens for CLI or external apps
-         finalRedirectUrl.searchParams.set('access_token', data.session.access_token)
-         finalRedirectUrl.searchParams.set('refresh_token', data.session.refresh_token)
-         if (data.session.expires_at) finalRedirectUrl.searchParams.set('expires_at', data.session.expires_at.toString())
-         if (data.user?.email) finalRedirectUrl.searchParams.set('email', data.user.email)
-      } else {
-         finalRedirectUrl = new URL(request.url)
-         finalRedirectUrl.pathname = next
-         finalRedirectUrl.searchParams.delete('code')
-         finalRedirectUrl.searchParams.delete('next')
+      try {
+        finalRedirectUrl = new URL(next, request.url)
+      } catch {
+        finalRedirectUrl = new URL('/', request.url)
       }
+
+      // Append tokens for ROBUST session syncing (Client-side hydration)
+      // This fixes issues where server-side cookies are lost during redirect in some environments (e.g. Netlify)
+      finalRedirectUrl.searchParams.set('access_token', data.session.access_token)
+      finalRedirectUrl.searchParams.set('refresh_token', data.session.refresh_token)
+      if (data.session.expires_at) finalRedirectUrl.searchParams.set('expires_at', data.session.expires_at.toString())
+      if (data.user?.email) finalRedirectUrl.searchParams.set('email', data.user.email)
+      
+      // Clean up params
+      finalRedirectUrl.searchParams.delete('code')
+      // Note: 'next' is consumed by constructing finalRedirectUrl, so we don't need to forward it as a param unless intended.
 
       return NextResponse.redirect(finalRedirectUrl)
     }

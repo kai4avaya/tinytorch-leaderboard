@@ -1,13 +1,27 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { updatePassword } from './actions'
+import { SessionSyncer } from '@/components/session-syncer'
 
 export default async function ResetPasswordPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; message?: string }>
+  searchParams: Promise<{ 
+    error?: string; 
+    message?: string;
+    access_token?: string;
+    refresh_token?: string;
+    redirect_port?: string;
+  }>
 }) {
   const params = await searchParams
+
+  // 1. Session Restoration (Priority)
+  // If we have tokens in the URL (from OAuth callback), sync them first.
+  if (params.access_token && params.refresh_token) {
+    return <SessionSyncer accessToken={params.access_token} refreshToken={params.refresh_token} />
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -40,6 +54,9 @@ export default async function ResetPasswordPage({
         )}
 
         <form action={updatePassword} className="space-y-4">
+          {params.redirect_port && (
+            <input type="hidden" name="redirect_port" value={params.redirect_port} />
+          )}
           <div>
             <label
               htmlFor="password"
