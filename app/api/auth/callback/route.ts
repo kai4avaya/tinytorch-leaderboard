@@ -55,9 +55,15 @@ export async function GET(request: Request) {
     }
   }
 
-  // Return the user to an error page with instructions
+  // Authentication failed (code invalid or expired)
   const errorUrl = new URL(request.url)
-  errorUrl.pathname = '/cli-login'
-  errorUrl.searchParams.set('error', 'Authentication failed')
+  const isCLIError = next.includes('localhost') || next.includes('127.0.0.1')
+  
+  errorUrl.pathname = isCLIError ? '/cli-login' : '/login'
+  errorUrl.searchParams.set('error', 'Authentication failed. Link may be expired.')
+  
+  // Clean up params that might confuse the destination
+  errorUrl.searchParams.delete('code')
+  
   return NextResponse.redirect(errorUrl)
 }
