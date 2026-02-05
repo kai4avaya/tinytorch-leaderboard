@@ -55,19 +55,23 @@ export function CliStateView({ state, email }: CliStateViewProps) {
 
           <div className="rounded-lg bg-zinc-100 p-4 dark:bg-zinc-800/50">
             <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              You can now close this browser window and return to your terminal.
+              {isLogin 
+                ? "You can now close this tab and return to your terminal."
+                : "You can now close this tab and return to your terminal."}
             </p>
           </div>
 
           <div className="mt-8">
-            <Button 
-              onClick={handleClose}
-              variant="outline" 
-              className="w-full border-zinc-200 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-            >
-              <X className="mr-2 h-4 w-4" />
-              Close Window
-            </Button>
+            {!isLogin && (
+              <Button 
+                onClick={handleClose}
+                variant="outline" 
+                className="w-full border-zinc-200 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+              >
+                <X className="mr-2 h-4 w-4" />
+                Close Window
+              </Button>
+            )}
           </div>
         </div>
         
