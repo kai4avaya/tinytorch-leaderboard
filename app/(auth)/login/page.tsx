@@ -22,6 +22,10 @@ export default async function LoginPage({
     // If the user has a specific redirect intent, we honor it.
     // Otherwise, we show the logged-in state.
     if (redirectTo && redirectTo !== '/') {
+       const isExternal = redirectTo.startsWith('http')
+       if (isExternal) {
+          return <LoggedInView userEmail={user.email} externalUrl={redirectTo} />
+       }
        redirect(redirectTo)
     }
     return <LoggedInView userEmail={user.email} />
