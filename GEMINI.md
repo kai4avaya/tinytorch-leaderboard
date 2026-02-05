@@ -7,6 +7,7 @@
 - [x] **Session Loss:** Caused by cookie failures on cross-domain redirects. **Fixed** by explicitly passing `access_token` in the URL.
 - [x] **Profile Bypass:** Users could access CLI without profile. **Fixed** by the `ProfileGuard` interceptor.
 - [x] **Password Reset Session Expired:** Links pointed directly to the reset page without exchanging the auth code. **Fixed** by implementing a **Callback Relay**: email links now point to `/api/auth/callback?next=/auth/reset-password` to ensure the session is established before the user lands on the reset form.
+- [x] **Missing Middleware:** The root `middleware.ts` file was missing, preventing Supabase from managing cookies/sessions correctly. **Fixed** by creating the middleware file to hook into `utils/supabase/middleware.ts`.
 
 ## 🟦 Architecture & Key Files
 
